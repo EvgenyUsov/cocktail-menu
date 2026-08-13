@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cocktail Menu — Вече Вечер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-top:#f4f4f8;
+    --dot:#fbdcbe; --dot-soft:#fde8d6;
+    --yellow:#ffc93b; --yellow-dp:#f5b301; --yellow-lt:#ffe08a;
+    --ink:#16161c; --ink-2:#3d3d48; --ink-dim:#6c6c7a; --ink-faint:#9a9aa8;
+    --line:#e9e9f0; --line-2:#f2f2f6;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:var(--bg); }
+  body{ font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+  .page{ position:relative; overflow:hidden; min-height:100vh;
+    padding:clamp(26px,5vw,58px) clamp(14px,3.5vw,36px) clamp(34px,5vw,60px); }
+  .page > *{ position:relative; z-index:2; }
+
+  /* ---------- фон: серая полоса сверху + точки + размытый слой точек ---------- */
+  .backdrop{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .backdrop .strip{ position:absolute; top:0; left:0; right:0; height:clamp(120px,17vh,190px);
+    background:var(--bg-top); }
+  /* базовая сетка точек */
+  .backdrop .dots{ position:absolute; inset:0;
+    background-image:radial-gradient(circle, var(--dot) 2.4px, transparent 2.5px);
+    background-size:34px 34px; background-position:12px 12px;
+    -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 16%, #000 62%, transparent 96%);
+    mask-image:linear-gradient(180deg, transparent 0, #000 16%, #000 62%, transparent 96%); }
+  /* тот же паттерн, но размытый — даёт мягкое свечение под чёткими точками */
+  .backdrop .dots-blur{ position:absolute; inset:0; filter:blur(6px); opacity:.85;
+    background-image:radial-gradient(circle, var(--dot-soft) 3.4px, transparent 3.6px);
+    background-size:34px 34px; background-position:12px 12px;
+    -webkit-mask-image:radial-gradient(ellipse 62% 48% at 50% 34%, #000 0, transparent 78%);
+    mask-image:radial-gradient(ellipse 62% 48% at 50% 34%, #000 0, transparent 78%); }
+  /* жёлтая шестерёнка-ромашка, уходит за правый край */
+  .backdrop .gear{ position:absolute; top:-12vh; right:-14vw;
+    width:min(54vw,480px); aspect-ratio:1; transform:rotate(-8deg);
+    filter:drop-shadow(0 26px 46px #e0a4001f); }
+  .backdrop .gear-2{ position:absolute; bottom:-17vh; left:-13vw;
+    width:min(36vw,320px); aspect-ratio:1; opacity:.42; transform:rotate(14deg);
+    filter:blur(3px); }
+
+  /* ---------- шапка ---------- */
+  header{ text-align:center; margin-bottom:clamp(24px,3.6vw,40px); z-index:5; }
+  .eyebrow{ font-size:.66rem; letter-spacing:.32em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:500; }
+  h1{ font-weight:700; letter-spacing:-.03em; font-size:clamp(2rem,6.2vw,3.4rem);
+    line-height:1.02; margin:.34em 0 .34em; color:var(--ink); }
+  h1 .accent{ position:relative; display:inline-block; }
+  h1 .accent::after{ content:''; position:absolute; left:-.06em; right:-.06em; bottom:.06em;
+    height:.34em; background:var(--yellow); opacity:.55; z-index:-1; border-radius:2px; }
+  .deco-rule{ display:flex; align-items:center; justify-content:center; gap:9px;
+    margin:0 auto; max-width:300px; }
+  .deco-rule .line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--dot),transparent); }
+  .deco-rule .dia{ width:7px; height:7px; border-radius:50%; background:var(--yellow); flex:0 0 auto; }
+  .classified{ margin-top:.8rem; font-size:.6rem; letter-spacing:.26em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:400; }
+
+  /* ---------- сетка 2 × 4 + резерв на всю ширину ---------- */
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(10px,1.5vw,16px);
+    max-width:960px; margin:0 auto; }
+
+  .card{ position:relative; display:flex; flex-direction:column; overflow:hidden;
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    box-shadow:0 1px 2px #16161c08, 0 10px 26px #16161c0a;
+    transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease; }
+  .card:hover{ transform:translateY(-3px); border-color:var(--dot);
+    box-shadow:0 2px 4px #16161c0a, 0 18px 40px #16161c14; }
+
+  /* слот под картинку 1:1 — до генерации виден цветной градиент-заглушка */
+  .card-img{ position:relative; width:100%; aspect-ratio:1/.82;
+    background-size:cover; background-position:center center; background-repeat:no-repeat; }
+  .card-img::after{ content:''; position:absolute; inset:0;
+    box-shadow:inset 0 -1px 0 var(--line-2); }
+
+  .card-body{ padding:clamp(13px,1.7vw,18px) clamp(14px,1.8vw,19px) clamp(15px,1.9vw,20px); }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .card-head{ min-width:0; }
+  .card-num{ font-size:.55rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:500; }
+  .card-name{ font-weight:700; color:var(--ink); line-height:1.15; letter-spacing:-.02em;
+    font-size:clamp(.98rem,2.1vw,1.26rem); margin:.32rem 0 0; }
+  .card-sub{ font-size:.58rem; letter-spacing:.06em; color:var(--yellow-dp);
+    font-weight:600; margin-top:.3rem; text-transform:uppercase; }
+  .card-desc{ font-size:.72rem; line-height:1.55; color:var(--ink-dim); font-weight:300;
+    margin:.6rem 0 .7rem; }
+  .card-ing{ font-size:.58rem; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-2); }
+
+  .card-str{ display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex:0 0 auto; }
+  .str-label{ font-size:.46rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); }
+  .pips{ display:flex; gap:4px; }
+  .pip{ width:7px; height:7px; border-radius:50%; background:var(--line);
+    border:1px solid var(--line); }
+  .pip.on{ background:var(--yellow); border-color:var(--yellow-dp); }
+
+  /* ---------- резерв ---------- */
+  .card.reserve{ grid-column:1 / -1; flex-direction:row; align-items:stretch;
+    background:linear-gradient(100deg,#fffdf6 0%,#fff9e8 58%,#fff4d6 100%);
+    border-color:#f7e4b4; }
+  /* исходник резерва подрезан до 1264×660 (~1.92:1) — ложится в слот почти без обрезки */
+  .card.reserve .card-img{ width:clamp(170px,34%,340px); aspect-ratio:auto; flex:0 0 auto;
+    min-height:162px; background-position:center; }
+  .card.reserve .card-img::after{ box-shadow:inset -1px 0 0 var(--line-2); }
+  .card.reserve .card-body{ flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .card.reserve .card-desc{ max-width:56ch; }
+
+  footer{ text-align:center; margin-top:clamp(24px,3.4vw,40px); }
+  footer .note{ font-size:.58rem; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint); }
+  footer .deco-rule{ margin-bottom:.9rem; max-width:180px; }
+
+  /* ---------- слоты под картинки (пока — цветные заглушки) ---------- */
+  .img-aperol-spritz{ background-image:url('menu-009/aperol-spritz.webp'),
+    radial-gradient(circle at 50% 40%,#ffb347,#f5872b); }
+  .img-gin-cordial{ background-image:url('menu-009/gin-cordial.webp'),
+    radial-gradient(circle at 50% 40%,#ff9aa8,#ef6076); }
+  .img-dark-n-stormy{ background-image:url('menu-009/dark-n-stormy.webp'),
+    radial-gradient(circle at 50% 40%,#d9a05b,#a8672c); }
+  .img-mezcal-paloma{ background-image:url('menu-009/mezcal-paloma.webp'),
+    radial-gradient(circle at 50% 40%,#ffa588,#ef6f56); }
+  .img-negroni{ background-image:url('menu-009/negroni.webp'),
+    radial-gradient(circle at 50% 40%,#e05a63,#bd2338); }
+  .img-whiskey-sour{ background-image:url('menu-009/whiskey-sour.webp'),
+    radial-gradient(circle at 50% 40%,#f2c464,#d99a2b); }
+  .img-white-russian{ background-image:url('menu-009/white-russian.webp'),
+    radial-gradient(circle at 50% 40%,#e3cdae,#b99771); }
+  .img-pina-colada{ background-image:url('menu-009/pina-colada.webp'),
+    radial-gradient(circle at 50% 40%,#fbeab0,#eccf74); }
+  .img-selection{ background-image:url('menu-009/selection.webp'),
+    radial-gradient(circle at 50% 40%,#ffd971,#f5b301); }
+
+  /* ---------- мобилка ---------- */
+  @media(max-width:640px){
+    .page{ padding-left:11px; padding-right:11px; }
+    .grid{ gap:9px; }
+    .card{ border-radius:14px; }
+    .card-body{ padding:11px 12px 13px; }
+    .card-num{ font-size:.5rem; letter-spacing:.14em; }
+    .card-name{ font-size:.9rem; }
+    .card-sub{ font-size:.52rem; }
+    .card-desc{ font-size:.65rem; line-height:1.48; margin:.5rem 0 .55rem; }
+    .card-ing{ font-size:.52rem; letter-spacing:.07em; }
+    .str-label{ font-size:.42rem; }
+    .pip{ width:6px; height:6px; }
+    .card.reserve{ flex-direction:column; }
+    .card.reserve .card-img{ width:100%; aspect-ratio:1/.5; min-height:0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="eyebrow">Вече Вечер</div>
+    <h1><span class="accent">Cocktail</span> Menu</h1>
+    <div class="deco-rule"><span class="line"></span><span class="dia"></span><span class="line"></span></div>
+    <div class="classified">Восемь позиций · Наливаем до последней бутылки</div>
+  </header>
+
+  <main class="grid">
+
+    <!-- 01 -->
+    <article class="card">
+      <div class="card-img img-aperol-spritz"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">01</div>
+            <h2 class="card-name">Aperol Spritz</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Пузырьки, горький апельсин и просекко. Лёгкое начало для затяжного вечера.</p>
+        <div class="card-ing">Апероль · Просекко · Сода</div>
+      </div>
+    </article>
+
+    <!-- 02 -->
+    <article class="card">
+      <div class="card-img img-gin-cordial"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">02</div>
+            <h2 class="card-name">Gin &amp; Tonic</h2>
+            <div class="card-sub">Кордиал арбуз-лайм</div>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Не тот джин-тоник, о котором вы подумали. Арбузный кордиал с лаймом, много льда, длинный и розовый.</p>
+        <div class="card-ing">Джин · Арбуз · Тоник</div>
+      </div>
+    </article>
+
+    <!-- 03 -->
+    <article class="card">
+      <div class="card-img img-dark-n-stormy"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">03</div>
+            <h2 class="card-name">Dark 'n' Stormy</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Чёрный бермудский ром поверх имбирного пива — двумя слоями, как шторм над водой. Лайм сверху.</p>
+        <div class="card-ing">Тёмный ром · Имбирь · Лайм</div>
+      </div>
+    </article>
+
+    <!-- 04 -->
+    <article class="card">
+      <div class="card-img img-mezcal-paloma"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">04</div>
+            <h2 class="card-name">Mezcal Paloma</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Мескаль ведёт, текила держит спину. Грейпфрутовый кордиал, грейпфрутовый тоник и соль по ободку.</p>
+        <div class="card-ing">Мескаль · Текила · Грейпфрут</div>
+      </div>
+    </article>
+
+    <!-- 05 -->
+    <article class="card">
+      <div class="card-img img-negroni"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">05</div>
+            <h2 class="card-name">Negroni</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Классика 1:1:1, заготовлена заранее и выдержана в холоде. Крупный лёд, апельсиновый твист, никаких компромиссов.</p>
+        <div class="card-ing">Джин · Кампари · Вермут</div>
+      </div>
+    </article>
+
+    <!-- 06 -->
+    <article class="card">
+      <div class="card-img img-whiskey-sour"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">06</div>
+            <h2 class="card-name">Whiskey Sour</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Бурбон, кислый кордиал и плотная белая шапка. Тёплый, округлый, с длинным послевкусием.</p>
+        <div class="card-ing">Бурбон · Кордиал · Пена</div>
+      </div>
+    </article>
+
+    <!-- 07 -->
+    <article class="card">
+      <div class="card-img img-white-russian"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">07</div>
+            <h2 class="card-name">White Russian</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Водка, кофейный ликёр и сливки, налитые через лёд. Десерт, который притворяется коктейлем.</p>
+        <div class="card-ing">Водка · Кофе · Сливки</div>
+      </div>
+    </article>
+
+    <!-- 08 -->
+    <article class="card">
+      <div class="card-img img-pina-colada"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">08</div>
+            <h2 class="card-name">Piña Colada</h2>
+          </div>
+          <div class="card-str">
+            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></span>
+            <span class="str-label">Крепость</span>
+          </div>
+        </div>
+        <p class="card-desc">Ром, кокосовый крем и ананас, взбитые со льдом. Отпуск в стакане.</p>
+        <div class="card-ing">Ром · Кокос · Ананас</div>
+      </div>
+    </article>
+
+    <!-- Резерв -->
+    <article class="card reserve">
+      <div class="card-img img-selection"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-head">
+            <div class="card-num">Резерв</div>
+            <h2 class="card-name">The Reserve</h2>
+          </div>
+        </div>
+        <p class="card-desc">Corona и Guinness, белое и красное, игристое и безалкогольное. Для тех, кто предпочитает не смешивать.</p>
+        <div class="card-ing">Corona · Guinness · Вино · Игристое · Б/А</div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer>
+    <div class="deco-rule"><span class="line"></span><span class="dia"></span><span class="line"></span></div>
+    <div class="note">Пейте вдумчиво</div>
+  </footer>
+
+  <div class="backdrop" aria-hidden="true">
+    <div class="strip"></div>
+    <div class="dots-blur"></div>
+    <div class="dots"></div>
+    <svg class="gear" viewBox="0 0 206 212" fill="none">
+      <defs>
+        <!-- силуэт ромашки: ядро + 12 лепестков по радиусу 72 -->
+        <g id="petal-ring">
+          <circle cx="100" cy="100" r="66"/>
+          <circle cx="100" cy="28" r="19"/><circle cx="136" cy="37.6" r="19"/>
+          <circle cx="162.4" cy="64" r="19"/><circle cx="172" cy="100" r="19"/>
+          <circle cx="162.4" cy="136" r="19"/><circle cx="136" cy="162.4" r="19"/>
+          <circle cx="100" cy="172" r="19"/><circle cx="64" cy="162.4" r="19"/>
+          <circle cx="37.6" cy="136" r="19"/><circle cx="28" cy="100" r="19"/>
+          <circle cx="37.6" cy="64" r="19"/><circle cx="64" cy="37.6" r="19"/>
+        </g>
+        <!-- градиенты в userSpaceOnUse: одна заливка тянется через все круги силуэта -->
+        <linearGradient id="gFace" gradientUnits="userSpaceOnUse" x1="28" y1="18" x2="180" y2="188">
+          <stop offset="0" stop-color="#ffeeb4"/><stop offset=".34" stop-color="#ffd45c"/>
+          <stop offset=".72" stop-color="#ffc42c"/><stop offset="1" stop-color="#f2ab00"/>
+        </linearGradient>
+        <linearGradient id="gSideHi" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="170" y2="180">
+          <stop offset="0" stop-color="#f0ad06"/><stop offset="1" stop-color="#d18f00"/>
+        </linearGradient>
+        <linearGradient id="gSideLo" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="170" y2="180">
+          <stop offset="0" stop-color="#d59400"/><stop offset="1" stop-color="#b87c00"/>
+        </linearGradient>
+        <linearGradient id="gBevel" gradientUnits="userSpaceOnUse" x1="62" y1="54" x2="146" y2="150">
+          <stop offset="0" stop-color="#e0a000"/><stop offset="1" stop-color="#ffdd85"/>
+        </linearGradient>
+        <radialGradient id="gFloor" gradientUnits="userSpaceOnUse" cx="86" cy="84" r="66">
+          <stop offset="0" stop-color="#ffe08f"/><stop offset=".58" stop-color="#ffcb45"/>
+          <stop offset="1" stop-color="#eda800"/>
+        </radialGradient>
+        <radialGradient id="gHole" gradientUnits="userSpaceOnUse" cx="94" cy="92" r="26">
+          <stop offset="0" stop-color="#ffffff"/><stop offset=".72" stop-color="#fdfcf8"/>
+          <stop offset="1" stop-color="#f0e3c4"/>
+        </radialGradient>
+        <filter id="softBlur" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4.5"/>
+        </filter>
+        <filter id="tightBlur" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2"/>
+        </filter>
+      </defs>
+
+      <!-- экструзия: два смещённых слоя дают толщину детали -->
+      <use href="#petal-ring" fill="url(#gSideLo)" transform="translate(5,10.5)"/>
+      <use href="#petal-ring" fill="url(#gSideHi)" transform="translate(2.5,5)"/>
+
+      <!-- лицевая грань -->
+      <use href="#petal-ring" fill="url(#gFace)"/>
+      <!-- блик по верхне-левому краю лепестков -->
+      <use href="#petal-ring" fill="none" stroke="#fff7dd" stroke-width="2.4" opacity=".55"
+           filter="url(#tightBlur)" transform="translate(-1.4,-2)"/>
+
+      <!-- проточка по краю ядра -->
+      <circle cx="100" cy="100" r="58" fill="none" stroke="#f7b81c" stroke-width="1.6" opacity=".55"/>
+
+      <!-- утопленное кольцо: тень борта + фаска + дно -->
+      <circle cx="100" cy="100" r="49" fill="#dc9a00" opacity=".85"/>
+      <circle cx="100" cy="98.2" r="47" fill="url(#gBevel)"/>
+      <circle cx="100" cy="100" r="43" fill="url(#gFloor)"/>
+      <circle cx="100" cy="100" r="43" fill="none" stroke="#c98d00" stroke-width="2.6"
+              opacity=".38" filter="url(#tightBlur)"/>
+
+      <!-- центральное отверстие: тень борта, затем сквозной белый -->
+      <circle cx="100" cy="102" r="21" fill="#c98d00" opacity=".5" filter="url(#tightBlur)"/>
+      <circle cx="100" cy="100" r="19.5" fill="url(#gHole)"/>
+      <path d="M83 91a19.5 19.5 0 0 1 26-6" fill="none" stroke="#d9b45e" stroke-width="1.6"
+            opacity=".5" stroke-linecap="round"/>
+
+      <!-- крупный мягкий блик на грани -->
+      <path d="M46 60a72 72 0 0 1 54-32" fill="none" stroke="#fffaea" stroke-width="9"
+            opacity=".6" stroke-linecap="round" filter="url(#softBlur)"/>
+      <!-- контактная тень снизу -->
+      <path d="M52 168a72 72 0 0 0 104-8" fill="none" stroke="#c98d00" stroke-width="7"
+            opacity=".28" stroke-linecap="round" filter="url(#softBlur)"/>
+    </svg>
+
+    <svg class="gear-2" viewBox="0 0 206 212" fill="none">
+      <use href="#petal-ring" fill="#e8ac10" transform="translate(3,6)"/>
+      <use href="#petal-ring" fill="url(#gFace)"/>
+      <circle cx="100" cy="100" r="49" fill="#e5a608" opacity=".8"/>
+      <circle cx="100" cy="98.2" r="47" fill="url(#gBevel)"/>
+      <circle cx="100" cy="100" r="43" fill="url(#gFloor)"/>
+      <circle cx="100" cy="100" r="19.5" fill="#fffdf6"/>
+    </svg>
+  </div>
+
+</div>
+
+</body>
+</html>
