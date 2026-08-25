@@ -102,16 +102,9 @@
     border:1px solid var(--line); }
   .pip.on{ background:var(--yellow); border-color:var(--yellow-dp); }
 
-  /* ---------- резерв ---------- */
-  .card.reserve{ grid-column:1 / -1; flex-direction:row; align-items:stretch;
-    background:linear-gradient(100deg,#fffdf6 0%,#fff9e8 58%,#fff4d6 100%);
+  /* ---------- резерв: обычная карточка, только тёплая заливка ---------- */
+  .card.reserve{ background:linear-gradient(150deg,#fffdf6 0%,#fff9e8 58%,#fff4d6 100%);
     border-color:#f7e4b4; }
-  /* исходник резерва подрезан до 1264×660 (~1.92:1) — ложится в слот почти без обрезки */
-  .card.reserve .card-img{ width:clamp(170px,34%,340px); aspect-ratio:auto; flex:0 0 auto;
-    min-height:162px; background-position:center; }
-  .card.reserve .card-img::after{ box-shadow:inset -1px 0 0 var(--line-2); }
-  .card.reserve .card-body{ flex:1; display:flex; flex-direction:column; justify-content:center; }
-  .card.reserve .card-desc{ max-width:56ch; }
 
   footer{ text-align:center; margin-top:clamp(24px,3.4vw,40px); }
   footer .note{ font-size:.58rem; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint); }
@@ -122,8 +115,6 @@
     radial-gradient(circle at 50% 40%,#ffb347,#f5872b); }
   .img-gin-cordial{ background-image:url('menu-009/gin-cordial.webp'),
     radial-gradient(circle at 50% 40%,#ff9aa8,#ef6076); }
-  .img-dark-n-stormy{ background-image:url('menu-009/dark-n-stormy.webp'),
-    radial-gradient(circle at 50% 40%,#d9a05b,#a8672c); }
   .img-mezcal-paloma{ background-image:url('menu-009/mezcal-paloma.webp'),
     radial-gradient(circle at 50% 40%,#ffa588,#ef6f56); }
   .img-negroni{ background-image:url('menu-009/negroni.webp'),
@@ -150,8 +141,6 @@
     .card-ing{ font-size:.52rem; letter-spacing:.07em; }
     .str-label{ font-size:.42rem; }
     .pip{ width:6px; height:6px; }
-    .card.reserve{ flex-direction:column; }
-    .card.reserve .card-img{ width:100%; aspect-ratio:1/.5; min-height:0; }
   }
 </style>
 </head>
@@ -208,31 +197,12 @@
 
     <!-- 03 -->
     <article class="card">
-      <div class="card-img img-dark-n-stormy"></div>
-      <div class="card-body">
-        <div class="card-top">
-          <div class="card-head">
-            <div class="card-num">03</div>
-            <h2 class="card-name">Dark 'n' Stormy</h2>
-          </div>
-          <div class="card-str">
-            <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></span>
-            <span class="str-label">Крепость</span>
-          </div>
-        </div>
-        <p class="card-desc">Чёрный бермудский ром поверх имбирного пива — двумя слоями, как шторм над водой. Лайм сверху.</p>
-        <div class="card-ing">Тёмный ром · Имбирь · Лайм</div>
-      </div>
-    </article>
-
-    <!-- 04 -->
-    <article class="card">
       <div class="card-img img-mezcal-paloma"></div>
       <div class="card-body">
         <div class="card-top">
           <div class="card-head">
-            <div class="card-num">04</div>
-            <h2 class="card-name">Mezcal Paloma</h2>
+            <div class="card-num">03</div>
+            <h2 class="card-name">Paloma</h2>
           </div>
           <div class="card-str">
             <span class="pips"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></span>
@@ -244,13 +214,13 @@
       </div>
     </article>
 
-    <!-- 05 -->
+    <!-- 04 -->
     <article class="card">
       <div class="card-img img-pina-colada"></div>
       <div class="card-body">
         <div class="card-top">
           <div class="card-head">
-            <div class="card-num">05</div>
+            <div class="card-num">04</div>
             <h2 class="card-name">Piña Colada</h2>
           </div>
           <div class="card-str">
@@ -263,13 +233,13 @@
       </div>
     </article>
 
-    <!-- 06 -->
+    <!-- 05 -->
     <article class="card">
       <div class="card-img img-white-russian"></div>
       <div class="card-body">
         <div class="card-top">
           <div class="card-head">
-            <div class="card-num">06</div>
+            <div class="card-num">05</div>
             <h2 class="card-name">White Russian</h2>
           </div>
           <div class="card-str">
@@ -282,13 +252,13 @@
       </div>
     </article>
 
-    <!-- 07 -->
+    <!-- 06 -->
     <article class="card">
       <div class="card-img img-whiskey-sour"></div>
       <div class="card-body">
         <div class="card-top">
           <div class="card-head">
-            <div class="card-num">07</div>
+            <div class="card-num">06</div>
             <h2 class="card-name">Whiskey Sour</h2>
           </div>
           <div class="card-str">
@@ -301,13 +271,13 @@
       </div>
     </article>
 
-    <!-- 08 -->
+    <!-- 07 -->
     <article class="card">
       <div class="card-img img-negroni"></div>
       <div class="card-body">
         <div class="card-top">
           <div class="card-head">
-            <div class="card-num">08</div>
+            <div class="card-num">07</div>
             <h2 class="card-name">Negroni</h2>
           </div>
           <div class="card-str">
@@ -320,13 +290,13 @@
       </div>
     </article>
 
-    <!-- Резерв -->
+    <!-- 08 -->
     <article class="card reserve">
       <div class="card-img img-selection"></div>
       <div class="card-body">
         <div class="card-top">
           <div class="card-head">
-            <div class="card-num">Резерв</div>
+            <div class="card-num">08 · Резерв</div>
             <h2 class="card-name">The Reserve</h2>
           </div>
         </div>
